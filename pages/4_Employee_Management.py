@@ -279,15 +279,22 @@ df = load_employee_data(file_to_use)
 if len(df) > 0:
     st.sidebar.header("📊 Filters")
     
+    # Display column names for debugging (optional)
+    # st.sidebar.write("Columns:", list(df.columns))
+
     # Find department column
     dept_col = None
     for col in df.columns:
-        col_lower = col.lower()
-        if 'department' in col_lower or 'dept' in col_lower:
+        col_str = str(col).lower()
+        if 'department' in col_str or 'dept' in col_str:
             dept_col = col
             break
-    
-    if dept_col and df[dept_col].notna().any():
+
+    # If not found, try a fallback logic
+    if not dept_col and len(df.columns) > 2:
+        dept_col = df.columns[2]  # Try 3rd column (index 2)
+
+    if dept_col and dept_col in df.columns and df[dept_col].notna().any():
         departments = sorted(df[dept_col].dropna().unique())
         selected_depts = st.sidebar.multiselect(
             "Select Departments",
@@ -299,7 +306,7 @@ if len(df) > 0:
     
     # Apply filter
     df_filtered = df.copy()
-    if selected_depts and dept_col:
+    if selected_depts and dept_col and dept_col in df.columns:
         df_filtered = df_filtered[df_filtered[dept_col].isin(selected_depts)]
     
     if len(df_filtered) > 0:
